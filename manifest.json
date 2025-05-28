@@ -1,0 +1,35 @@
+{
+    "name": "O-Spreadsheet Chrome Dev Tools",
+    "version": "1.0",
+    "description": "TODO",
+    "permissions": ["storage", "activeTab", "tabs"],
+    "icons": {
+        "128": "images/icon128.png",
+        "48": "images/icon48.png"
+    },
+    "action": {
+        "default_icon": "images/icon48.png"
+    },
+    "content_security_policy": {},
+    "host_permissions": ["http://localhost:8000/*"],
+    "web_accessible_resources": [
+        {
+            "resources": ["src/o_spreadsheet_injected_script.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "manifest_version": 3,
+    "background": {},
+    "content_scripts": [
+        {
+            "js": ["src/o_spreadsheet.js"],
+            "matches": [
+                "*://*.odoo.com/*",
+                "http://127.0.0.1:8069/*",
+                "http://localhost:8069/*",
+                "http://127.0.0.1:8080/demo/",
+                "http://localhost:8080/demo/"
+            ]
+        }
+    ]
+}
