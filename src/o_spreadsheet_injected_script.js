@@ -146,4 +146,37 @@ function addDebugMenuItems() {
             }
         },
     });
+
+    topbarMenuRegistry.addChild("slow_cell_animations", ["debug"], {
+        name: () => "Slow cell animations x10",
+        isReadonlyAllowed: true,
+        execute: () => slowDownCellAnimations(10),
+    });
+
+    topbarMenuRegistry.addChild("slow_cell_animations_100", ["debug"], {
+        name: () => "Slow cell animations x100",
+        isReadonlyAllowed: true,
+        execute: () => slowDownCellAnimations(100),
+    });
+}
+
+function slowDownCellAnimations(factor) {
+    const component = getComponentsByClassName("Spreadsheet")[0];
+    const env = component.env;
+    const gridRendererStore = [...env.__spreadsheet_stores__.dependencies.values()].find(
+        (item) => item.constructor.name === "GridRenderer"
+    );
+    const originalFn = gridRendererStore.updateAnimationsProgress;
+    gridRendererStore.updateAnimationsProgress = function (timestamp) {
+        const startAnimationTimestamp = [...gridRendererStore.animations.values()]
+            .map((a) => a.startTime)
+            .find((t) => t !== undefined);
+        if (!timestamp || !startAnimationTimestamp) {
+            return originalFn.apply(this, [timestamp]);
+        }
+        // Slow the animation by 20x
+        const elapsedTime = timestamp - startAnimationTimestamp;
+        const mockTimeStamp = startAnimationTimestamp + elapsedTime / factor;
+        return originalFn.apply(this, [mockTimeStamp]);
+    };
 }
