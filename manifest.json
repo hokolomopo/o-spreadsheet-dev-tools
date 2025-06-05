@@ -14,7 +14,11 @@
     "host_permissions": ["http://localhost:8000/*"],
     "web_accessible_resources": [
         {
-            "resources": ["src/o_spreadsheet_injected_script.js"],
+            "resources": [
+                "src/o_spreadsheet_injected_script.js",
+                "src/odoo_dashboard_injected_script.js",
+                "src/helpers.js"
+            ],
             "matches": ["<all_urls>"]
         }
     ],
