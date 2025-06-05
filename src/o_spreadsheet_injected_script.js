@@ -5,7 +5,7 @@ function getOwlApp() {
 function waitForSpreadsheetComponent(callback) {
     setTimeout(() => {
         const component = getComponentsByClassName("Spreadsheet")[0];
-        component ? callback(component.props.model) : waitForSpreadsheetComponent(callback);
+        component ? callback() : waitForSpreadsheetComponent(callback);
     }, 100);
 }
 
@@ -29,70 +29,72 @@ function getComponentsByClassName(className) {
     return matchingComponents;
 }
 
-waitForSpreadsheetComponent((model) => {
-    exposeModelInWindows(model);
+waitForSpreadsheetComponent(() => {
+    exposeModelInWindows();
     addDebugMenuItems();
 });
 
-function exposeModelInWindows(model) {
+function exposeModelInWindows() {
     console.log("Model, Getters, and Dispatch now exposed in window");
+
+
 
     Object.defineProperty(window, "model", {
         get: function () {
-            return model;
+            return getComponentsByClassName("Spreadsheet")[0].props.model;
         },
     });
     Object.defineProperty(window, "getters", {
         get: function () {
-            return model.getters;
+            return window.model.getters;
         },
     });
     Object.defineProperty(window, "dispatch", {
         get: function () {
-            return model.dispatch;
+            return window.model.dispatch;
         },
     });
     Object.defineProperty(window, "sheetId", {
         get: function () {
-            return model.getters.getActiveSheetId();
+            return window.model.getters.getActiveSheetId();
         },
     });
     Object.defineProperty(window, "sheet", {
         get: function () {
-            return model.getters.getActiveSheet();
+            return window.model.getters.getActiveSheet();
         },
     });
     Object.defineProperty(window, "figureId", {
         get: function () {
-            return model.getters.getSelectedFigureId();
+            return window.model.getters.getSelectedFigureId();
         },
     });
     Object.defineProperty(window, "figure", {
         get: function () {
-            return model.getters.getFigure(window.sheetId, window.figureId);
+            return window.model.getters.getFigure(window.sheetId, window.figureId);
         },
     });
     Object.defineProperty(window, "chart", {
         get: function () {
-            return model.getters.getChart(model.getters.getSelectedFigureId()).getDefinition();
+            return window.model.getters.getChart(window.model.getters.getSelectedFigureId()).getDefinition();
         },
     });
     Object.defineProperty(window, "cell", {
         get: function () {
-            return model.getters.getActiveCell();
+            return window.model.getters.getActiveCell();
         },
     });
     Object.defineProperty(window, "coreCell", {
         get: function () {
-            const sheetId = model.getters.getActiveSheetId();
-            const selection = model.getters.getSelectedZone();
-            return model.getters.getCell({ sheetId, col: selection.left, row: selection.top });
+            const sheetId = window.model.getters.getActiveSheetId();
+            const selection = window.model.getters.getSelectedZone();
+            return window.model.getters.getCell({ sheetId, col: selection.left, row: selection.top });
         },
     });
     Object.defineProperty(window, "cellPosition", {
         get: function () {
-            const sheetId = model.getters.getActiveSheetId();
-            const selection = model.getters.getSelectedZone();
+            const sheetId = window.model.getters.getActiveSheetId();
+            const selection = window.model.getters.getSelectedZone();
             return { sheetId, col: selection.left, row: selection.top };
         },
     });
@@ -103,24 +105,24 @@ function exposeModelInWindows(model) {
     });
     Object.defineProperty(window, "pivotId", {
         get: function () {
-            const position = model.getters.getActivePosition();
-            return model.getters.getPivotIdFromPosition(position);
+            const position = window.model.getters.getActivePosition();
+            return window.model.getters.getPivotIdFromPosition(position);
         },
     });
     Object.defineProperty(window, "pivot", {
         get: function () {
             const pivotId = window.pivotId;
-            return model.getters.getPivot(pivotId);
+            return window.model.getters.getPivot(pivotId);
         },
     });
     Object.defineProperty(window, "corePivot", {
         get: function () {
-            return model.getters.getPivotCoreDefinition(window.pivotId);
+            return window.model.getters.getPivotCoreDefinition(window.pivotId);
         },
     });
     Object.defineProperty(window, "target", {
         get: function () {
-            return model.getters.getSelectedZones();
+            return window.model.getters.getSelectedZones();
         },
     });
 }
