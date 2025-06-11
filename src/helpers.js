@@ -16,7 +16,7 @@ function getComponentsByClassName(className) {
     }
     const matchingComponents = [];
     const iterateComponentNodes = (component) => {
-        const children = component.children || [];
+        const children = component?.children || [];
         for (const child of Object.values(children)) {
             if (child.component.constructor.name === className) {
                 matchingComponents.push(child.component);
