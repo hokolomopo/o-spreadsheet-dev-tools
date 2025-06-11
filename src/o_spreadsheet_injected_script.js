@@ -84,6 +84,11 @@ function exposeModelInWindows() {
             return window.model.getters.getPivot(pivotId);
         },
     });
+    Object.defineProperty(window, "pivotCell", {
+        get: function () {
+            return window.model.getters.getPivotCellFromPosition(window.cellPosition);
+        },
+    });
     Object.defineProperty(window, "corePivot", {
         get: function () {
             return window.model.getters.getPivotCoreDefinition(window.pivotId);
