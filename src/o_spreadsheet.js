@@ -11,6 +11,4 @@ function injectFile(filePath) {
     (document.head || document.documentElement).appendChild(script);
 }
 
-injectFile("src/helpers.js");
-injectFile("src/o_spreadsheet_injected_script.js");
-injectFile("src/odoo_dashboard_injected_script.js");
+injectFile("src/o_spreadsheet_global_hook.js");

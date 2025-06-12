@@ -1,12 +1,11 @@
 waitForSpreadsheetComponent(() => {
     exposeModelInWindows();
     addDebugMenuItems();
+    addEditActionToDashboards();
 });
 
 function exposeModelInWindows() {
     console.log("Model, Getters, and Dispatch now exposed in window");
-
-
 
     Object.defineProperty(window, "model", {
         get: function () {
@@ -45,7 +44,9 @@ function exposeModelInWindows() {
     });
     Object.defineProperty(window, "chart", {
         get: function () {
-            return window.model.getters.getChart(window.model.getters.getSelectedFigureId()).getDefinition();
+            return window.model.getters
+                .getChart(window.model.getters.getSelectedFigureId())
+                .getDefinition();
         },
     });
     Object.defineProperty(window, "cell", {
@@ -57,7 +58,11 @@ function exposeModelInWindows() {
         get: function () {
             const sheetId = window.model.getters.getActiveSheetId();
             const selection = window.model.getters.getSelectedZone();
-            return window.model.getters.getCell({ sheetId, col: selection.left, row: selection.top });
+            return window.model.getters.getCell({
+                sheetId,
+                col: selection.left,
+                row: selection.top,
+            });
         },
     });
     Object.defineProperty(window, "cellPosition", {
@@ -122,4 +127,42 @@ function addDebugMenuItems() {
             }
         },
     });
+}
+
+function addEditActionToDashboards() {
+    const dashboardEdits = getComponentsByClassName("DashboardEdit");
+    for (const dashboardEdit of dashboardEdits) {
+        dashboardEdit.isDashboardAdmin = true;
+    }
+}
+
+function getOwlApp() {
+    return window.__OWL_DEVTOOLS__?.apps?.values()?.next()?.value;
+}
+
+function waitForSpreadsheetComponent(callback) {
+    setTimeout(() => {
+        const component = getComponentsByClassName("Spreadsheet")[0];
+        component ? callback() : waitForSpreadsheetComponent(callback);
+    }, 100);
+}
+
+function getComponentsByClassName(className) {
+    const app = getOwlApp();
+    if (!app) {
+        return [];
+    }
+    const matchingComponents = [];
+    const iterateComponentNodes = (component) => {
+        const children = component?.children || [];
+        for (const child of Object.values(children)) {
+            if (child.component.constructor.name === className) {
+                matchingComponents.push(child.component);
+            } else {
+                iterateComponentNodes(child);
+            }
+        }
+    };
+    iterateComponentNodes(app.root);
+    return matchingComponents;
 }
