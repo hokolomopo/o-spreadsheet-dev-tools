@@ -1,115 +1,76 @@
-waitForSpreadsheetComponent(() => {
+const callback = () => {
     exposeModelInWindows();
     addDebugMenuItems();
     addEditActionToDashboards();
-});
+}
+waitForSpreadsheetComponent(callback);
+function setupNavigationListener(callback) {
+    window.addEventListener("popstate", callback);
+    window.addEventListener("hashchange", callback);
+    const originalPushState = history.pushState;
+    history.pushState = function (...args) {
+        originalPushState.apply(this, args);
+        callback();
+    };
+    const originalReplaceState = history.replaceState;
+    history.replaceState = function (...args) {
+        originalReplaceState.apply(this, args);
+        callback();
+    };
+}
+setupNavigationListener(() => waitForSpreadsheetComponent(callback));
 
 function exposeModelInWindows() {
-    console.log("Model, Getters, and Dispatch now exposed in window");
+    const addPropertyToWindow = (name, getter) => {
+        Object.defineProperty(window, name, {
+            get: getter,
+            configurable: true,
+        });
+    };
 
-    Object.defineProperty(window, "model", {
-        get: function () {
-            return getComponentsByClassName("Spreadsheet")[0].props.model;
-        },
+    addPropertyToWindow("model", () => getComponentsByClassName("Spreadsheet")[0].props.model);
+    addPropertyToWindow("getters", () => window.model.getters);
+    addPropertyToWindow("dispatch", () => window.model.dispatch);
+    addPropertyToWindow("sheetId", () => window.model.getters.getActiveSheetId());
+    addPropertyToWindow("sheet", () => window.model.getters.getActiveSheet());
+    addPropertyToWindow("figureId", () => window.model.getters.getSelectedFigureId());
+    addPropertyToWindow("figure", () => window.model.getters.getFigure(window.sheetId, window.figureId));
+    addPropertyToWindow("chart", () => window.model.getters
+        .getChart(window.model.getters.getSelectedFigureId())
+        .getDefinition());
+    addPropertyToWindow("cell", () => window.model.getters.getActiveCell());
+    addPropertyToWindow("coreCell", () => {
+        const sheetId = window.model.getters.getActiveSheetId();
+        const selection = window.model.getters.getSelectedZone();
+        return window.model.getters.getCell({
+            sheetId,
+            col: selection.left,
+            row: selection.top,
+        });
     });
-    Object.defineProperty(window, "getters", {
-        get: function () {
-            return window.model.getters;
-        },
+    addPropertyToWindow("cellPosition", () => {
+        const sheetId = window.model.getters.getActiveSheetId();
+        const selection = window.model.getters.getSelectedZone();
+        return { sheetId, col: selection.left, row: selection.top };
     });
-    Object.defineProperty(window, "dispatch", {
-        get: function () {
-            return window.model.dispatch;
-        },
+    addPropertyToWindow("position", () => window.cellPosition);
+    addPropertyToWindow("pivotId", () => {
+        const position = window.model.getters.getActivePosition();
+        return window.model.getters.getPivotIdFromPosition(position);
     });
-    Object.defineProperty(window, "sheetId", {
-        get: function () {
-            return window.model.getters.getActiveSheetId();
-        },
+    addPropertyToWindow("pivot", () => {
+        const pivotId = window.pivotId;
+        return window.model.getters.getPivot(pivotId);
     });
-    Object.defineProperty(window, "sheet", {
-        get: function () {
-            return window.model.getters.getActiveSheet();
-        },
-    });
-    Object.defineProperty(window, "figureId", {
-        get: function () {
-            return window.model.getters.getSelectedFigureId();
-        },
-    });
-    Object.defineProperty(window, "figure", {
-        get: function () {
-            return window.model.getters.getFigure(window.sheetId, window.figureId);
-        },
-    });
-    Object.defineProperty(window, "chart", {
-        get: function () {
-            return window.model.getters
-                .getChart(window.model.getters.getSelectedFigureId())
-                .getDefinition();
-        },
-    });
-    Object.defineProperty(window, "cell", {
-        get: function () {
-            return window.model.getters.getActiveCell();
-        },
-    });
-    Object.defineProperty(window, "coreCell", {
-        get: function () {
-            const sheetId = window.model.getters.getActiveSheetId();
-            const selection = window.model.getters.getSelectedZone();
-            return window.model.getters.getCell({
-                sheetId,
-                col: selection.left,
-                row: selection.top,
-            });
-        },
-    });
-    Object.defineProperty(window, "cellPosition", {
-        get: function () {
-            const sheetId = window.model.getters.getActiveSheetId();
-            const selection = window.model.getters.getSelectedZone();
-            return { sheetId, col: selection.left, row: selection.top };
-        },
-    });
-    Object.defineProperty(window, "position", {
-        get: function () {
-            return window.cellPosition;
-        },
-    });
-    Object.defineProperty(window, "pivotId", {
-        get: function () {
-            const position = window.model.getters.getActivePosition();
-            return window.model.getters.getPivotIdFromPosition(position);
-        },
-    });
-    Object.defineProperty(window, "pivot", {
-        get: function () {
-            const pivotId = window.pivotId;
-            return window.model.getters.getPivot(pivotId);
-        },
-    });
-    Object.defineProperty(window, "pivotCell", {
-        get: function () {
-            return window.model.getters.getPivotCellFromPosition(window.cellPosition);
-        },
-    });
-    Object.defineProperty(window, "corePivot", {
-        get: function () {
-            return window.model.getters.getPivotCoreDefinition(window.pivotId);
-        },
-    });
-    Object.defineProperty(window, "target", {
-        get: function () {
-            return window.model.getters.getSelectedZones();
-        },
-    });
+    addPropertyToWindow("pivotCell", () => window.model.getters.getPivotCellFromPosition(window.cellPosition));
+    addPropertyToWindow("corePivot", () => window.model.getters.getPivotCoreDefinition(window.pivotId));
+    addPropertyToWindow("target", () => window.model.getters.getSelectedZones());
 }
 
 function addDebugMenuItems() {
     const { topbarMenuRegistry } = o_spreadsheet.registries;
 
-    topbarMenuRegistry.add("debug", {
+    topbarMenuRegistry.replace("debug", {
         name: "Debug",
         sequence: 100,
     });
