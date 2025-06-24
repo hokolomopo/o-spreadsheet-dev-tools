@@ -70,7 +70,10 @@ function exposeModelInWindows() {
 function addDebugMenuItems() {
     const { topbarMenuRegistry } = o_spreadsheet.registries;
 
-    topbarMenuRegistry.replace("debug", {
+    if(topbarMenuRegistry.contains("debug")) {
+        return;
+    }
+    topbarMenuRegistry.add("debug", {
         name: "Debug",
         sequence: 100,
     });
