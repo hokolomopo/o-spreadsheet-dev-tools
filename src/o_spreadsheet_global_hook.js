@@ -35,8 +35,13 @@ function exposeModelInWindows() {
     addPropertyToWindow("sheet", () => window.model.getters.getActiveSheet());
     addPropertyToWindow("figureId", () => window.model.getters.getSelectedFigureId());
     addPropertyToWindow("figure", () => window.model.getters.getFigure(window.sheetId, window.figureId));
+    addPropertyToWindow("chartId", () =>
+        window.model.getters.getChartIdFromFigureId
+            ? window.model.getters.getChartIdFromFigureId(window.figureId)
+            : window.figureId
+    );
     addPropertyToWindow("chart", () => window.model.getters
-        .getChart(window.model.getters.getSelectedFigureId())
+        .getChart(window.chartId)
         .getDefinition());
     addPropertyToWindow("cell", () => window.model.getters.getActiveCell());
     addPropertyToWindow("coreCell", () => {
