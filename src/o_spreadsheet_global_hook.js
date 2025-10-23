@@ -3,7 +3,7 @@ const callback = () => {
     addDebugMenuItems();
     addEditActionToDashboards();
 }
-waitForSpreadsheetComponent(callback);
+
 function setupNavigationListener(callback) {
     window.addEventListener("popstate", callback);
     window.addEventListener("hashchange", callback);
@@ -18,7 +18,6 @@ function setupNavigationListener(callback) {
         callback();
     };
 }
-setupNavigationListener(() => waitForSpreadsheetComponent(callback));
 
 function exposeModelInWindows() {
     const addPropertyToWindow = (name, getter) => {
@@ -168,3 +167,9 @@ function getComponentsByClassName(className) {
     iterateComponentNodes(app.root);
     return matchingComponents;
 }
+
+
+waitForSpreadsheetComponent(callback);
+setupNavigationListener(function () {
+    waitForSpreadsheetComponent?.(callback);
+});
