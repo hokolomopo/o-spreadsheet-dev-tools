@@ -32,7 +32,11 @@ function exposeModelInWindows() {
     addPropertyToWindow("dispatch", () => window.model.dispatch);
     addPropertyToWindow("sheetId", () => window.model.getters.getActiveSheetId());
     addPropertyToWindow("sheet", () => window.model.getters.getActiveSheet());
-    addPropertyToWindow("figureId", () => window.model.getters.getSelectedFigureId());
+    addPropertyToWindow("figureId", () =>
+        window.model.getters.getSelectedFigureId
+            ? window.model.getters.getSelectedFigureId()
+            : window.model.getters.getSelectedFigureIds()[0]
+    );
     addPropertyToWindow("figure", () => window.model.getters.getFigure(window.sheetId, window.figureId));
     addPropertyToWindow("chartId", () =>
         window.model.getters.getChartIdFromFigureId
