@@ -168,7 +168,13 @@ function getComponentsByClassName(className) {
             }
         }
     };
-    iterateComponentNodes(app.root);
+    if(app.root){
+        iterateComponentNodes(app.root); // Owl 2
+    } else {
+        for(const root of app.roots) {
+            iterateComponentNodes(root.node); // Owl 3
+        }
+    }
     return matchingComponents;
 }
 
