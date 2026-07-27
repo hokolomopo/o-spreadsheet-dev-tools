@@ -27,7 +27,9 @@ function exposeModelInWindows() {
         });
     };
 
-    addPropertyToWindow("model", () => getComponentsByClassName("Spreadsheet")[0].props.model);
+    const spreadsheetComponent = getComponentsByClassName("Spreadsheet")[0];
+
+    addPropertyToWindow("model", () => spreadsheetComponent.__owl__.props?.model || spreadsheetComponent.props.model);
     addPropertyToWindow("getters", () => window.model.getters);
     addPropertyToWindow("dispatch", () => window.model.dispatch);
     addPropertyToWindow("sheetId", () => window.model.getters.getActiveSheetId());
@@ -141,25 +143,47 @@ function addEditActionToDashboards() {
     }
 }
 
-function getOwlApp() {
-    return window.__OWL_DEVTOOLS__?.apps?.values()?.next()?.value;
+async function fetchAppRoots() {
+    const app = window.__OWL_DEVTOOLS__?.apps?.values()?.next()?.value;
+    if(!app) {
+        return;
+    }
+    const roots = app.roots || (app.root ? [app.root] : []);
+
+    const rootNodes = [];
+    for(const root of roots) {
+        if(root.promise){
+            rootNodes.push(await root.promise);
+        }else if(root.node){
+            rootNodes.push(root.node);
+        }
+    }
+    return rootNodes;
 }
 
 function waitForSpreadsheetComponent(callback) {
     setTimeout(() => {
+        if(!window.appRoots) {
+            fetchAppRoots().then((roots) => {
+                window.appRoots = roots;
+                waitForSpreadsheetComponent(callback);
+            });
+            return;
+        }
         const component = getComponentsByClassName("Spreadsheet")[0];
         component ? callback() : waitForSpreadsheetComponent(callback);
     }, 100);
 }
 
 function getComponentsByClassName(className) {
-    const app = getOwlApp();
-    if (!app) {
-        return [];
-    }
+    // const app = getOwlApp();
+    // if (!app) {
+    //     return [];
+    // }
+    // console.log(app)
     const matchingComponents = [];
     const iterateComponentNodes = (component) => {
-        const children = component?.children || [];
+        const children = component?.children || component?.__owl__.children || [];
         for (const child of Object.values(children)) {
             if (child.component.constructor.name === className) {
                 matchingComponents.push(child.component);
@@ -168,12 +192,8 @@ function getComponentsByClassName(className) {
             }
         }
     };
-    if(app.root){
-        iterateComponentNodes(app.root); // Owl 2
-    } else {
-        for(const root of app.roots) {
-            iterateComponentNodes(root.node); // Owl 3
-        }
+    for(const root of window.appRoots) {
+        iterateComponentNodes(root);
     }
     return matchingComponents;
 }
