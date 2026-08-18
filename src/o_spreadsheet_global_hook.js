@@ -1,3 +1,5 @@
+console.log("o_spreadsheet_global_hook.js loaded");
+
 const callback = () => {
     exposeModelInWindows();
     addDebugMenuItems();
@@ -156,6 +158,8 @@ async function fetchAppRoots() {
             rootNodes.push(await root.promise);
         }else if(root.node){
             rootNodes.push(root.node);
+        } else {
+            rootNodes.push(root);
         }
     }
     return rootNodes;
@@ -163,7 +167,7 @@ async function fetchAppRoots() {
 
 function waitForSpreadsheetComponent(callback) {
     setTimeout(() => {
-        if(!window.appRoots) {
+        if(!window.appRoots || window.appRoots.length === 0) {
             fetchAppRoots().then((roots) => {
                 window.appRoots = roots;
                 waitForSpreadsheetComponent(callback);
